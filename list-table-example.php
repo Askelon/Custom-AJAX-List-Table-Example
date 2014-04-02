@@ -546,12 +546,28 @@ class TT_Example_List_Table extends WP_List_Table {
     }
 
     /**
+     * Display the table
+     * Adds a Nonce field and calls parent's display method
+     *
+     * @since 3.1.0
+     * @access public
+     */
+    function display() {
+
+        wp_nonce_field( 'ajax-fetch-custom-list-nonce', '_ajax_fetch_custom_list_nonce' );
+
+        parent::display();
+    }
+
+    /**
      * Handle an incoming ajax request (called from admin-ajax.php)
      *
      * @since 3.1.0
      * @access public
      */
     function ajax_response() {
+
+        check_ajax_referer( 'ajax-fetch-custom-list-nonce', '_ajax_fetch_custom_list_nonce' );
 
         $this->prepare_items();
 
@@ -676,7 +692,7 @@ function ajax_script(){
 			type: 'GET',
 			data: {
 				action: '_ajax_fetch_custom_list',
-				_ajax_fetch_list_nonce: $('#_ajax_fetch_list_nonce').val(),
+				_ajax_fetch_custom_list_nonce: $('#_ajax_fetch_custom_list_nonce').val(),
 				paged: $link.attr('data-nav-paged')
 			},
 			success: function(response) {
