@@ -1,14 +1,16 @@
-=== Custom List Table Example ===
-Contributors: Veraxus
-Donate link: http://www.mattvanandel.com/
-Tags: example, table, data, WP_List_Table, admin, plugin, list table
+=== Custom AJAX List Table Example ===
+Contributors: Charlie MERLAND, Matt Van Andel
+Tags: example, table, data, WP_List_Table, admin, plugin, list table, ajax
 Requires at least: 3.5
 Tested up to: 3.9
-Stable tag: 1.3
+Stable tag: 1.4
 
-A highly documented plugin that demonstrates how to create custom admin list-tables using official WordPress techniques.
+A highly documented plugin that demonstrates how to create custom AJAX admin list-tables using official WordPress techniques.
 
 == Description ==
+
+Custom AJAX List Table Example is a WordPress Plugin example of WP_List_Table AJAX implementation. It is a fork of Matt Van Andel's Custom List Table
+Example plugin.
 
 This plugin serves as a highly documented example of using WordPress's built-in WP_List_Table class for plugin development. Previously, WordPress plugins
 had to be created from scratch and were often wildly inconsistent with the rest of the WordPress admin. This example serves to help clarify use of the
@@ -20,6 +22,10 @@ open the PHP file itself will find exceptionally well documented code outlining 
 For more information, please visit the <a href="http://codex.wordpress.org/Class_Reference/WP_List_Table">WP_List_Tables</a> page in the WordPress Codex.
 
 == Changelog ==
+
+= 1.4 =
+* Minor clean up
+* AJAX loading and sorting
 
 = 1.3 =
 * Minor updates to documentation

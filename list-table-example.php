@@ -1,14 +1,24 @@
 <?php
-/*
-Plugin Name: Custom List Table Example
-Plugin URI: http://www.mattvanandel.com/
-Description: A highly documented plugin that demonstrates how to create custom List Tables using official WordPress APIs.
-Version: 1.3
-Author: Matt Van Andel
-Author URI: http://www.mattvanandel.com
-License: GPL2
-*/
-/*  Copyright 2014  Matthew Van Andel  (email : matt@mattvanandel.com)
+/**
+ * Custom AJAX List Table Example
+ *
+ * Custom AJAX List Table Example is a WordPress Plugin example of WP_List_Table
+ * AJAX implementation. It is a fork of Matt Van Andel's Custom List Table Example
+ * plugin.
+ *
+ * Plugin Name: Custom AJAX List Table Example
+ * Plugin URI:  https://github.com/Askelon/Custom-AJAX-List-Table-Example
+ * Description: A highly documented plugin that demonstrates how to create custom AJAX admin list-tables using official WordPress techniques.
+ * Version:     1.4
+ * Author:      Charlie MERLAND
+ * Author URI:  http://www.caercam.org/
+ * License:     GPL-2.0
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * GitHub Plugin URI: https://github.com/Askelon/Custom-AJAX-List-Table-Example
+ */
+
+/**
+	Copyright 2014 Charlie MERLAND (email : charlie.merland@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License, version 2, as
@@ -24,9 +34,7 @@ License: GPL2
 	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-
-/* == NOTICE ===================================================================
+/** == NOTICE ==================================================================
  * Please do not alter this file. Instead: make a copy of the entire plugin, 
  * rename it, and work inside the copy. If you modify this plugin directly and 
  * an update is released, your changes will be lost!
@@ -34,8 +42,8 @@ License: GPL2
 
 
 
-/*************************** LOAD THE BASE CLASS *******************************
- *******************************************************************************
+/** ************************* LOAD THE BASE CLASS ******************************
+ *
  * The WP_List_Table class isn't automatically available to plugins, so we need
  * to check if it's available and load it if necessary. In this tutorial, we are
  * going to use the WP_List_Table class directly from WordPress core.
@@ -64,8 +72,8 @@ if ( ! class_exists( 'WP_List_Table' ) )
 error_reporting( ~E_NOTICE );
 
 
-/************************** CREATE A PACKAGE CLASS *****************************
- *******************************************************************************
+/** ************************ CREATE A PACKAGE CLASS ****************************
+ * 
  * Create a new list table package that extends the core WP_List_Table class.
  * WP_List_Table contains most of the framework for generating the table, but we
  * need to define and override some methods so that our data can be displayed
@@ -180,7 +188,7 @@ class TT_Example_List_Table extends WP_List_Table {
 				//plural name of the listed records
 				'plural'	=> 'movies',
 				//does this table support ajax?
-				'ajax'		=> false
+				'ajax'		=> true
 			)
 		);
 		
