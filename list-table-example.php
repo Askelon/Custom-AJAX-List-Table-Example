@@ -338,7 +338,7 @@ class TT_Example_List_Table extends WP_List_Table {
         /**
          * First, lets decide how many records per page to show
          */
-        $per_page = 2;
+        $per_page = 5;
         
         
         /**
@@ -454,13 +454,89 @@ class TT_Example_List_Table extends WP_List_Table {
         ) );
     }
 
+	/**
+	 * Print column headers, accounting for hidden and sortable columns.
+	 *
+	 * @since 3.1.0
+	 * @access protected
+	 *
+	 * @param bool $with_id Whether to set the id attribute or not
+	 */
+	function print_column_headers( $with_id = true, $echo = true ) {
+		list( $columns, $hidden, $sortable ) = $this->get_column_info();
+
+		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+		$current_url = remove_query_arg( 'paged', $current_url );
+		$output = '';
+
+		if ( isset( $_GET['orderby'] ) )
+			$current_orderby = $_GET['orderby'];
+		else
+			$current_orderby = '';
+
+		if ( isset( $_GET['order'] ) && 'desc' == $_GET['order'] )
+			$current_order = 'desc';
+		else
+			$current_order = 'asc';
+
+		if ( ! empty( $columns['cb'] ) ) {
+			static $cb_counter = 1;
+			$columns['cb'] = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' . __( 'Select All' ) . '</label>'
+				. '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
+			$cb_counter++;
+		}
+
+		foreach ( $columns as $column_key => $column_display_name ) {
+			$class = array( 'manage-column', "column-$column_key" );
+
+			$style = '';
+			if ( in_array( $column_key, $hidden ) )
+				$style = 'display:none;';
+
+			$style = ' style="' . $style . '"';
+
+			if ( 'cb' == $column_key )
+				$class[] = 'check-column';
+			elseif ( in_array( $column_key, array( 'posts', 'comments', 'links' ) ) )
+				$class[] = 'num';
+
+			if ( isset( $sortable[$column_key] ) ) {
+				list( $orderby, $desc_first ) = $sortable[$column_key];
+
+				if ( $current_orderby == $orderby ) {
+					$order = 'asc' == $current_order ? 'desc' : 'asc';
+					$class[] = 'sorted';
+					$class[] = $current_order;
+				} else {
+					$order = $desc_first ? 'desc' : 'asc';
+					$class[] = 'sortable';
+					$class[] = $desc_first ? 'asc' : 'desc';
+				}
+
+				$column_display_name = '<a data-sortable="' . ( isset( $sortable[$column_key] ) ? 'true' : 'false' ) . '" data-sort-order="' . $order . '" data-sort-by="' . $orderby . '" href="' . esc_url( add_query_arg( compact( 'orderby', 'order' ), $current_url ) ) . '"><span>' . $column_display_name . '</span><span class="sorting-indicator"></span></a>';
+			}
+
+			$id = $with_id ? "id='$column_key'" : '';
+
+			if ( !empty( $class ) )
+				$class = "class='" . join( ' ', $class ) . "'";
+
+			$output .= "<th scope='col' $id $class $style>$column_display_name</th>";
+		}
+
+		if ( false === $echo )
+			return $output;
+
+		echo $output;
+	}
+
     /**
      * Display the pagination.
      *
      * @since 3.1.0
      * @access protected
      */
-    function pagination($which){
+    function pagination($which, $echo = true){
         if ( empty( $this->_pagination_args ) )
                 return;
 
@@ -542,6 +618,9 @@ class TT_Example_List_Table extends WP_List_Table {
 
         $this->_pagination = "<div class='tablenav-pages{$page_class}'>$output</div>";
 
+        if ( false === $echo )
+            return $this->_pagination;
+
         echo $this->_pagination;
     }
 
@@ -554,7 +633,7 @@ class TT_Example_List_Table extends WP_List_Table {
      */
     function display() {
 
-        wp_nonce_field( 'ajax-fetch-custom-list-nonce', '_ajax_fetch_custom_list_nonce' );
+        wp_nonce_field( 'ajax-custom-list-nonce', '_ajax_custom_list_nonce' );
 
         parent::display();
     }
@@ -567,7 +646,7 @@ class TT_Example_List_Table extends WP_List_Table {
      */
     function ajax_response() {
 
-        check_ajax_referer( 'ajax-fetch-custom-list-nonce', '_ajax_fetch_custom_list_nonce' );
+        check_ajax_referer( 'ajax-custom-list-nonce', '_ajax_custom_list_nonce' );
 
         $this->prepare_items();
 
@@ -582,17 +661,11 @@ class TT_Example_List_Table extends WP_List_Table {
 
         $rows = ob_get_clean();
 
-        ob_start();
-        $this->pagination('top');
-        $pagination_top = ob_get_clean();
-
-        ob_start();
-        $this->pagination('bottom');
-        $pagination_bottom = ob_get_clean();
-
         $response = array( 'rows' => $rows );
-        $response['pagination']['top'] = $pagination_top;
-        $response['pagination']['bottom'] = $pagination_bottom;
+        $response['pagination']['top'] = $this->pagination('top', false);
+        $response['pagination']['bottom'] = $this->pagination('bottom', false);
+        $response['column_headers'] = $this->print_column_headers(false, false);
+        $response['pagination']['bottom'] = $this->pagination('bottom', false);
 
         if ( isset( $total_items ) )
             $response['total_items_i18n'] = sprintf( _n( '1 item', '%s items', $total_items ), number_format_i18n( $total_items ) );
@@ -665,7 +738,7 @@ function tt_render_list_page(){
     <?php
 }
 
-/** *************************** AJAX CALLBACK ********************************
+/** *************************** AJAX CALLBACKS ********************************
  *******************************************************************************
  * This function loads the Custom List Table Class and calls ajax_response method
  */
@@ -673,6 +746,11 @@ function _ajax_fetch_custom_list_callback() {
     $wp_list_table = new TT_Example_List_Table();
     $wp_list_table->ajax_response();
 } add_action('wp_ajax__ajax_fetch_custom_list', '_ajax_fetch_custom_list_callback');
+
+function _ajax_order_custom_list_callback() {
+    $wp_list_table = new TT_Example_List_Table();
+    $wp_list_table->ajax_response();
+} add_action('wp_ajax__ajax_order_custom_list', '_ajax_order_custom_list_callback');
 
 /** ************************* LOAD JQUERY PART ********************************
  *******************************************************************************
@@ -686,41 +764,109 @@ function ajax_script(){
 <script>
 (function($) {
 
-	var update_wp_list_table = function( $link ) {
-		$.ajax({
-			url: ajaxurl,
-			type: 'GET',
-			data: {
-				action: '_ajax_fetch_custom_list',
-				_ajax_fetch_custom_list_nonce: $('#_ajax_fetch_custom_list_nonce').val(),
-				paged: $link.attr('data-nav-paged')
-			},
-			success: function(response) {
-				response = $.parseJSON( response );
+list = {
+
+	init: function() {
+		$('a[data-nav=true]').on('click', function(e) {
+			e.preventDefault();
+			list.update( $(this).attr('data-nav-paged') );
+		});
+		$('a[data-nav=false]').on('click', function(e) {
+			e.preventDefault();
+		});
+		$('input[name=paged]').on('change', function() {
+			list.update( $(this).val() );
+		});
+		$('input[name=paged]').on('keypress', function(e) {
+			if ( e.which == 13 ) {
+				e.preventDefault();
+				list.update( $(this).val() );
+			}
+		});
+		$('a[data-sortable=true]').on('click', function(e) {
+			e.preventDefault();
+			var order = $(this).attr('data-sort-order');
+			var orderby = $(this).attr('data-sort-by');
+			list.sort( order, orderby );
+		});
+	},
+
+	sort: function( order, orderby ) {
+
+		var data = {
+			action: '_ajax_order_custom_list',
+			order: order,
+			orderby: orderby
+		};
+
+		var param = {
+			success: function( response ) {
+				var response = $.parseJSON( response );
 
 				if ( response.rows.length )
 					$('#the-list').html( response.rows );
+				if ( response.column_headers.length )
+					$('thead tr, tfoot tr').html( response.column_headers );
 				if ( response.pagination.bottom.length )
 					$('.tablenav.top .tablenav-pages').html( $(response.pagination.top).html() );
 				if ( response.pagination.top.length )
 					$('.tablenav.bottom .tablenav-pages').html( $(response.pagination.bottom).html() );
 
-				update_wp_list_table_init();
+				list.init();
 			}
-		});
-	};
+		};
+		
+		list.__ajax( data, param );
+	},
 
-	var update_wp_list_table_init = function() {
-		$('a[data-nav=true]').on('click', function(e) {
-			e.preventDefault();
-			update_wp_list_table( $(this) );
-		});
-		$('a[data-nav=false]').on('click', function(e) {
-			e.preventDefault();
-		});
-	};
+	update: function( paged ) {
 
-	update_wp_list_table_init();
+		var data = {
+			action: '_ajax_fetch_custom_list',
+			paged: paged
+		};
+
+		var param = {
+			success: function( response ) {
+				var response = $.parseJSON( response );
+
+				if ( response.rows.length )
+					$('#the-list').html( response.rows );
+				if ( response.column_headers.length )
+					$('thead tr, tfoot tr').html( response.column_headers );
+				if ( response.pagination.bottom.length )
+					$('.tablenav.top .tablenav-pages').html( $(response.pagination.top).html() );
+				if ( response.pagination.top.length )
+					$('.tablenav.bottom .tablenav-pages').html( $(response.pagination.bottom).html() );
+
+				list.init();
+			}
+		};
+		
+		list.__ajax( data, param );
+	},
+
+	__ajax: function( data, param ) {
+
+		var __data = $.extend({_ajax_custom_list_nonce: $('#_ajax_custom_list_nonce').val()},data);
+
+		var __param = $.extend(
+			{
+				url: ajaxurl,
+				type: 'GET',
+				data: __data,
+				success: function( response ) {
+					list.init();
+				}
+			},
+			param
+		);
+
+		$.ajax( __param );
+	}
+}
+
+list.init();
 
 })(jQuery);
 </script>
