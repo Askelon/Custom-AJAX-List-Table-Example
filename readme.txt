@@ -19,7 +19,7 @@ WP_List_Table class for quickly and easily generating consistent, standardized, 
 One new admin menu is created: "List Table Example". This page includes an example table and all the documentation needed to reproduce it. Developers who
 open the PHP file itself will find exceptionally well documented code outlining all the information needed to duplicate this feature.
 
-For more information, please visit the <a href="http://codex.wordpress.org/Class_Reference/WP_List_Table">WP_List_Tables</a> page in the WordPress Codex.
+For more information, please visit http://codex.wordpress.org/Class_Reference/WP_List_Table in the WordPress Codex.
 
 == Changelog ==
 
