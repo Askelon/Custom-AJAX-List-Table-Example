@@ -721,13 +721,6 @@ list = {
 			if ( 13 == e.which )
 				e.preventDefault();
 
-			// First shalt thou count to three, no more, no less.
-			// User has to input a number here, nothing else.
-			if ( 96 > e.which || e.which > 106 ) {
-				$('input[name=paged]').val('');
-				return false;
-			}
-
 			// This time we fetch the variables in inputs
 			var data = {
 				paged: parseInt( $('input[name=paged]').val() ) || '1',
@@ -750,6 +743,8 @@ list = {
 	/** AJAX call
 	 * 
 	 * Send the call and replace table parts with updated version!
+	 * 
+	 * @param    object    data The data to pass through AJAX
 	 */
 	update: function( data ) {
 		$.ajax({
@@ -791,6 +786,11 @@ list = {
 	 * Filter the URL Query to extract variables
 	 * 
 	 * @see http://css-tricks.com/snippets/javascript/get-url-variables/
+	 * 
+	 * @param    string    query The URL query part containing the variables
+	 * @param    string    variable Name of the variable we want to get
+	 * 
+	 * @return   string|boolean The variable value if available, false else.
 	 */
 	__query: function( query, variable ) {
 
